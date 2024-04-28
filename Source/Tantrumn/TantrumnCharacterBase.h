@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "InteractInterface.h"
 #include "GameFramework/Character.h"
 #include "ThrowableActor.h"
 #include "Sound/SoundCue.h"
@@ -20,7 +22,7 @@ enum class ECharacterThrowState : uint8
 
 
 UCLASS()
-class TANTRUMN_API ATantrumnCharacterBase : public ACharacter
+class TANTRUMN_API ATantrumnCharacterBase : public ACharacter, public IInteractInterface
 {
 	GENERATED_BODY()
 
@@ -43,6 +45,8 @@ public:
 	void RequestPullObjectStart();
 	void RequestPullObjectStop();
 	void ResetThrowableObject();
+
+	void RequestUseObject();
 
 	void OnThrowableAttached(AThrowableActor* InThrowableActor);
 
@@ -131,4 +135,16 @@ private:
 
 	UPROPERTY()
 	AThrowableActor* ThrowableActor;
+
+	void ApplyEffect_Implementation(EEffectType EffectType, bool bIsBuff) override;
+
+	void EndEffect();
+
+	bool bIsUnderEffect = false;
+	bool bIsEffectBuff = false;
+
+	float DefaultEffectCooldown = 5.0f;
+	float EffectCooldown = 0.0f;
+
+	EEffectType CurrentEffect = EEffectType::None;
 };

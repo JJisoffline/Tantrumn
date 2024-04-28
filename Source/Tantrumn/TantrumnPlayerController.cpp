@@ -96,14 +96,24 @@ void ATantrumnPlayerController::BeginPlay()
 
 void ATantrumnPlayerController::RequestMoveForward(float AxisValue)
 {
-	FRotator const ControlSpaceRot = GetControlRotation();
-	GetPawn()->AddMovementInput(FRotationMatrix(ControlSpaceRot).GetScaledAxis(EAxis::X), AxisValue);
+	if (!GameModeRef || GameModeRef->GetCurrentGameState() != EGameState::Playing) { return; }
+
+	if (AxisValue != 0.0f)
+	{
+		FRotator const ControlSpaceRot = GetControlRotation();
+		GetPawn()->AddMovementInput(FRotationMatrix(ControlSpaceRot).GetScaledAxis(EAxis::X), AxisValue);
+	}
 }
 
 void ATantrumnPlayerController::RequestMoveRight(float AxisValue)
 {
-	FRotator const ControlSpaceRot = GetControlRotation();
-	GetPawn()->AddMovementInput(FRotationMatrix(ControlSpaceRot).GetScaledAxis(EAxis::Y), AxisValue);
+	if (!GameModeRef || GameModeRef->GetCurrentGameState() != EGameState::Playing) { return; }
+
+	if (AxisValue != 0.0f)
+	{
+		FRotator const ControlSpaceRot = GetControlRotation();
+		GetPawn()->AddMovementInput(FRotationMatrix(ControlSpaceRot).GetScaledAxis(EAxis::Y), AxisValue);
+	}
 }
 
 void ATantrumnPlayerController::RequestLookUp(float AxisValue)
@@ -118,9 +128,17 @@ void ATantrumnPlayerController::RequestLookRight(float AxisValue)
 
 void ATantrumnPlayerController::RequestJumpStart()
 {
+	if (!GameModeRef || GameModeRef->GetCurrentGameState() != EGameState::Playing) { return; }
+	
 	if (GetCharacter())
 	{
 		GetCharacter()->Jump();
+
+		if (JumpSound && GetCharacter()->GetCharacterMovement()->IsMovingOnGround())
+		{
+			FVector CharacterLocation = GetCharacter()->GetActorLocation();
+			UGameplayStatics::PlaySoundAtLocation(this, JumpSound, CharacterLocation);
+		}
 	}
 }
 
@@ -134,6 +152,8 @@ void ATantrumnPlayerController::RequestJumpStop()
 
 void ATantrumnPlayerController::RequestCrouchStart()
 {
+	if (!GameModeRef || GameModeRef->GetCurrentGameState() != EGameState::Playing) { return; }
+	
 	if (!GetCharacter()->GetCharacterMovement()->IsMovingOnGround()) { return; }
 	if (GetCharacter())
 	{
@@ -151,6 +171,8 @@ void ATantrumnPlayerController::RequestCrouchStop()
 
 void ATantrumnPlayerController::RequestSprintStart()
 {
+	if (!GameModeRef || GameModeRef->GetCurrentGameState() != EGameState::Playing) { return; }
+	
 	if (GetCharacter())
 	{
 		GetCharacter()->GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
@@ -193,7 +215,14 @@ void ATantrumnPlayerController::RequestThrowObject(float AxisValue)
 			const bool IsFlick = fabs(currentDelta) > FlickThreshold;
 			if (IsFlick)
 			{
-				TantrumnCharacterBase->RequestThrowObject();
+				if (AxisValue > 0)
+				{
+					TantrumnCharacterBase->RequestThrowObject();
+				}
+				else
+				{
+					TantrumnCharacterBase->RequestUseObject();
+				}
 			}
 		}
 		else

@@ -10,9 +10,6 @@
 class ATantrumnGameModeBase;
 class UUserWidget;
 
-/**
- * 
- */
 UCLASS()
 class TANTRUMN_API ATantrumnPlayerController : public APlayerController
 {
