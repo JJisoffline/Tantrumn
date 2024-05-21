@@ -165,11 +165,14 @@ void ATantrumnCharacterBase::RequestSprintEnd()
 
 void ATantrumnCharacterBase::RequestThrowObject()
 {
+	//JJTD fix this!
 	if (CanThrowObject())
 	{
 		if (PlayThrowMontage())
 		{
 			CharacterThrowState = ECharacterThrowState::Throwing;
+
+			UE_LOG(LogTemp, Warning, TEXT("Throw action initiated"));
 		}
 		else
 		{

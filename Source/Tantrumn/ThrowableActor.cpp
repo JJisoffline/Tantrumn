@@ -75,11 +75,17 @@ void AThrowableActor::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPri
 		{
 			if (Other == PullActor)
 			{
-				AttachToComponent(TantrumnCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("ObjectAttach"));
-				SetOwner(TantrumnCharacter);
-				ProjectileMovementComponent->Deactivate();
-				State = EState::Attached;
-				TantrumnCharacter->OnThrowableAttached(this);
+				FName HandSocketName = TEXT("hand_l");
+				USkeletalMeshComponent* CharacterMesh = TantrumnCharacter->GetMesh();
+				if (CharacterMesh && CharacterMesh->DoesSocketExist(HandSocketName))
+				{
+					FAttachmentTransformRules AttachmentRules = FAttachmentTransformRules::SnapToTargetNotIncludingScale; // Ignore scale
+                    AttachToComponent(CharacterMesh, AttachmentRules, HandSocketName);
+                    SetOwner(TantrumnCharacter);
+                    ProjectileMovementComponent->Deactivate();
+                    State = EState::Attached;
+                    TantrumnCharacter->OnThrowableAttached(this);
+				}
 			}
 			else
 			{
@@ -109,10 +115,17 @@ bool AThrowableActor::SetHomingTarget(AActor* Target)
 		{
 			if (USceneComponent* ThrowableSceneComponent = Cast <USceneComponent>(GetComponentByClass(USceneComponent::StaticClass())))
 			{
+				//I DID IT I ****ING DID IT!
+				float Speed = 1000.f;
+				FVector Direction = Target->GetActorLocation() - GetActorLocation();
+				Direction.Z += 2000.0f * FVector::DotProduct(Direction, Direction) / (Speed * Speed);
+				Direction.Normalize();
+
+				ProjectileMovementComponent->Velocity = Direction * Speed;
+				
 				ProjectileMovementComponent->SetUpdatedComponent(ThrowableSceneComponent);
 				ProjectileMovementComponent->Activate(true);
 				ProjectileMovementComponent->HomingTargetComponent = TWeakObjectPtr<USceneComponent>(SceneComponent);
-				ProjectileMovementComponent->Velocity = FVector(0.0f, 0.0f, 1000.0f);
 				ProjectileMovementComponent->bIsHomingProjectile = true;
 				return true;
 			}
